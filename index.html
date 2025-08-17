@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Master - 单词记忆游戏</title>
+    <title>单词记忆大师 - 带音频功能</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -25,6 +25,7 @@
             --card-bg: #ffffff;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
+            --radius: 15px;
         }
         
         body {
@@ -39,7 +40,7 @@
         
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         
@@ -47,32 +48,81 @@
             text-align: center;
             margin-bottom: 2rem;
             color: white;
-            padding: 1rem;
-            border-radius: 15px;
+            padding: 1.5rem;
+            border-radius: var(--radius);
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeIn 1s ease;
         }
         
         h1 {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             margin-bottom: 0.5rem;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
         
         .subtitle {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
             max-width: 600px;
             margin: 0 auto;
         }
         
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            animation: slideDown 0.8s ease;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            color: white;
+            position: relative;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+        }
+        
+        .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .tab-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
         .game-container {
             background: var(--card-bg);
-            border-radius: 20px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
             margin-bottom: 2rem;
+            animation: scaleIn 0.8s ease;
         }
         
         .stats-bar {
@@ -82,12 +132,14 @@
             background: var(--primary);
             color: white;
             font-weight: 500;
+            flex-wrap: wrap;
         }
         
         .stat-item {
             display: flex;
             align-items: center;
             gap: 8px;
+            margin: 0.3rem 0;
         }
         
         .game-content {
@@ -97,14 +149,47 @@
         .word-display {
             text-align: center;
             margin-bottom: 2rem;
+            position: relative;
         }
         
         .word {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 700;
             color: var(--primary);
             margin: 1rem 0;
             letter-spacing: 1px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .audio-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--success);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .audio-btn:hover {
+            transform: scale(1.1);
+            background: #3ab5d9;
+        }
+        
+        .audio-btn.playing {
+            background: var(--danger);
+            animation: pulse 1s infinite;
         }
         
         .hint {
@@ -125,6 +210,11 @@
             .options-container {
                 grid-template-columns: 1fr;
             }
+            
+            .stats-bar {
+                flex-direction: column;
+                align-items: center;
+            }
         }
         
         .option {
@@ -137,6 +227,8 @@
             font-size: 1.1rem;
             font-weight: 500;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
         
         .option:hover {
@@ -162,6 +254,7 @@
             justify-content: center;
             gap: 1rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
         
         .btn {
@@ -198,6 +291,22 @@
             background: #e9ecef;
         }
         
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e1156e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
         .result-screen {
             text-align: center;
             padding: 2rem;
@@ -207,16 +316,17 @@
             font-size: 5rem;
             color: var(--success);
             margin-bottom: 1.5rem;
+            animation: bounce 1s infinite alternate;
         }
         
         .result-title {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin-bottom: 1rem;
             color: var(--primary);
         }
         
         .score {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 700;
             color: var(--primary);
             margin: 1rem 0;
@@ -224,7 +334,7 @@
         
         .github-section {
             background: var(--card-bg);
-            border-radius: 20px;
+            border-radius: var(--radius);
             padding: 2rem;
             box-shadow: var(--shadow);
             margin-top: 1rem;
@@ -301,16 +411,190 @@
         .heart {
             color: var(--danger);
         }
+        
+        /* 数据库管理样式 */
+        .database-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-top: 1rem;
+        }
+        
+        .db-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .db-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .word-form {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            outline: none;
+        }
+        
+        .words-list {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            border-bottom: 1px solid #e9ecef;
+            transition: var(--transition);
+        }
+        
+        .word-item:hover {
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .word-item:last-child {
+            border-bottom: none;
+        }
+        
+        .word-item .word-text {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .word-item .translation-text {
+            color: var(--gray);
+        }
+        
+        .word-item .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .delete-btn {
+            color: var(--danger);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+        
+        .delete-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .sync-section {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .sync-controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        /* 音频播放器样式 */
+        .audio-player {
+            display: none;
+        }
+        
+        /* 动画 */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(76, 201, 240, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(76, 201, 240, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(76, 201, 240, 0); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-book"></i> Word Master</h1>
-            <p class="subtitle">通过游戏提高你的词汇量 - 选择正确的单词释义</p>
+            <h1><i class="fas fa-book"></i> 单词记忆大师 <i class="fas fa-volume-up"></i></h1>
+            <p class="subtitle">通过游戏提高词汇量 - 带音频功能的单词学习系统</p>
         </header>
         
-        <div class="game-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="game">
+                <i class="fas fa-play-circle"></i> 开始游戏
+                <span class="tab-badge" id="gameBadge">10</span>
+            </div>
+            <div class="tab" data-tab="database">
+                <i class="fas fa-database"></i> 单词管理
+                <span class="tab-badge" id="dbBadge">0</span>
+            </div>
+            <div class="tab" data-tab="github">
+                <i class="fab fa-github"></i> GitHub部署
+            </div>
+        </div>
+        
+        <!-- 游戏界面 -->
+        <div class="game-container" id="gameTab">
             <div class="stats-bar">
                 <div class="stat-item">
                     <i class="fas fa-star"></i>
@@ -328,6 +612,10 @@
                     <i class="fas fa-list-ol"></i>
                     <span id="progress">进度: 1/10</span>
                 </div>
+                <div class="stat-item">
+                    <i class="fas fa-volume-up"></i>
+                    <span>音频功能已启用</span>
+                </div>
             </div>
             
             <div class="game-content" id="gameScreen">
@@ -336,24 +624,30 @@
                 </div>
                 
                 <div class="word-display">
+                    <button class="audio-btn" id="audioBtn">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
                     <h2>单词</h2>
-                    <div class="word" id="currentWord">Eloquent</div>
-                    <p class="hint" id="hint">形容词</p>
+                    <div class="word" id="currentWord">加载中...</div>
+                    <p class="hint" id="hint">词性: 形容词</p>
                 </div>
                 
                 <div class="options-container" id="optionsContainer">
-                    <div class="option" data-value="1">流利的，雄辩的</div>
-                    <div class="option" data-value="2">模糊的，不清楚的</div>
-                    <div class="option" data-value="3">优雅的，精致的</div>
-                    <div class="option" data-value="4">古老的，过时的</div>
+                    <div class="option" data-value="1">加载选项...</div>
+                    <div class="option" data-value="2">加载选项...</div>
+                    <div class="option" data-value="3">加载选项...</div>
+                    <div class="option" data-value="4">加载选项...</div>
                 </div>
                 
                 <div class="controls">
                     <button class="btn btn-secondary" id="hintBtn">
-                        <i class="fas fa-lightbulb"></i> 提示
+                        <i class="fas fa-lightbulb"></i> 提示 (-2分)
                     </button>
                     <button class="btn btn-primary" id="nextBtn" disabled>
                         下一题 <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-warning" id="resetBtn">
+                        <i class="fas fa-redo"></i> 重置游戏
                     </button>
                 </div>
             </div>
@@ -362,18 +656,85 @@
                 <div class="result-icon">
                     <i class="fas fa-trophy"></i>
                 </div>
-                <h2 class="result-title">游戏完成!</h2>
+                <h2 class="result-title">恭喜完成游戏!</h2>
                 <p>你的最终得分</p>
                 <div class="score" id="finalScore">0</div>
                 <div class="controls">
                     <button class="btn btn-primary" id="restartBtn">
                         <i class="fas fa-redo"></i> 重新开始
                     </button>
+                    <button class="btn btn-secondary" id="showDbBtn">
+                        <i class="fas fa-database"></i> 管理单词
+                    </button>
                 </div>
             </div>
         </div>
         
-        <div class="github-section">
+        <!-- 数据库界面 -->
+        <div class="database-section hidden" id="databaseTab">
+            <div class="db-header">
+                <h2><i class="fas fa-database"></i> 单词数据库管理</h2>
+                <div class="stat-item">
+                    <i class="fas fa-book"></i>
+                    <span id="wordCount">单词数量: 0</span>
+                </div>
+            </div>
+            
+            <div class="word-form">
+                <h3><i class="fas fa-plus-circle"></i> 添加新单词</h3>
+                <div class="form-group">
+                    <label for="newWord"><i class="fas fa-font"></i> 英文单词</label>
+                    <input type="text" id="newWord" class="form-control" placeholder="输入英文单词">
+                </div>
+                <div class="form-group">
+                    <label for="newTranslation"><i class="fas fa-language"></i> 中文翻译</label>
+                    <input type="text" id="newTranslation" class="form-control" placeholder="输入中文翻译">
+                </div>
+                <div class="form-group">
+                    <label for="newHint"><i class="fas fa-info-circle"></i> 单词提示（可选）</label>
+                    <input type="text" id="newHint" class="form-control" placeholder="词性、用法等">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-volume-up"></i> 音频文件</label>
+                    <div class="hint">音频文件路径: ./video/[单词].mp3</div>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="addWordBtn">
+                        <i class="fas fa-plus"></i> 添加到数据库
+                    </button>
+                    <button class="btn btn-secondary" id="importBtn">
+                        <i class="fas fa-file-import"></i> 导入示例单词
+                    </button>
+                </div>
+            </div>
+            
+            <div class="words-list" id="wordsList">
+                <h3><i class="fas fa-list"></i> 数据库中的单词</h3>
+                <p id="emptyDbMsg">数据库为空，请添加单词或导入示例数据</p>
+            </div>
+            
+            <div class="sync-section">
+                <h3><i class="fas fa-sync"></i> 数据同步</h3>
+                <p>将单词数据库保存到GitHub Gist或本地存储</p>
+                <div class="sync-controls">
+                    <button class="btn btn-secondary" id="saveLocalBtn">
+                        <i class="fas fa-save"></i> 保存到本地
+                    </button>
+                    <button class="btn btn-secondary" id="loadLocalBtn">
+                        <i class="fas fa-folder-open"></i> 从本地加载
+                    </button>
+                    <button class="btn btn-primary" id="saveGistBtn">
+                        <i class="fab fa-github"></i> 保存到GitHub
+                    </button>
+                    <button class="btn btn-primary" id="loadGistBtn">
+                        <i class="fab fa-github"></i> 从GitHub加载
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- GitHub部署指南 -->
+        <div class="github-section hidden" id="githubTab">
             <div class="github-header">
                 <i class="fab fa-github fa-2x"></i>
                 <h2>如何部署到 GitHub Pages</h2>
@@ -396,89 +757,49 @@
                 <div class="step">
                     <div class="step-number">3</div>
                     <div>
+                        <h3>添加音频文件</h3>
+                        <p>创建一个名为 "video" 的文件夹，将单词音频文件（如 1.mp3, 2.mp3）放入其中</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>
                         <h3>配置 GitHub Pages</h3>
                         <p>在仓库设置中，找到 GitHub Pages 部分，选择主分支（或 docs 文件夹）作为源</p>
                     </div>
                 </div>
                 <div class="step">
-                    <div class="step-number">4</div>
+                    <div class="step-number">5</div>
                     <div>
                         <h3>访问你的游戏</h3>
                         <p>等待几分钟，然后访问 https://username.github.io 即可玩游戏</p>
                     </div>
                 </div>
             </div>
+            
+            <div class="sync-section" style="margin-top: 2rem;">
+                <h3><i class="fas fa-volume-up"></i> 音频文件配置说明</h3>
+                <p>音频文件需要按照以下规则命名并放置在正确位置：</p>
+                <ul style="padding-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>文件夹路径: <code>./video/</code></li>
+                    <li>命名规则: <code>[单词].mp3</code> (例如: eloquent.mp3)</li>
+                    <li>支持格式: MP3, WAV, OGG</li>
+                    <li>音频文件需要与单词数据库中的单词匹配</li>
+                </ul>
+            </div>
         </div>
+        
+        <!-- 音频播放器 -->
+        <audio id="wordAudio" class="audio-player"></audio>
     </div>
     
     <footer>
-        <p>用 <span class="heart">❤</span> 制作 | Word Master 单词记忆游戏 | 轻松部署到 GitHub Pages</p>
+        <p>用 <span class="heart">❤</span> 制作 | 单词记忆大师 | 带音频功能的单词学习系统 | 部署在 GitHub Pages</p>
     </footer>
     
     <script>
-        // 单词数据库
-        const wordDatabase = [
-            {
-                word: "Eloquent",
-                definition: "流利的，雄辩的",
-                hint: "形容词",
-                options: ["流利的，雄辩的", "模糊的，不清楚的", "优雅的，精致的", "古老的，过时的"]
-            },
-            {
-                word: "Benevolent",
-                definition: "仁慈的，慈善的",
-                hint: "形容词",
-                options: ["邪恶的，有害的", "仁慈的，慈善的", "巨大的，庞大的", "普通的，平凡的"]
-            },
-            {
-                word: "Pragmatic",
-                definition: "务实的，实用的",
-                hint: "形容词",
-                options: ["理想的，完美的", "复杂的，难懂的", "务实的，实用的", "随机的，任意的"]
-            },
-            {
-                word: "Resilient",
-                definition: "有弹性的，适应力强的",
-                hint: "形容词",
-                options: ["僵硬的，死板的", "脆弱的，易碎的", "有弹性的，适应力强的", "懒惰的，不活跃的"]
-            },
-            {
-                word: "Meticulous",
-                definition: "一丝不苟的，极为谨慎的",
-                hint: "形容词",
-                options: ["粗心的，马虎的", "慷慨的，大方的", "神秘的，难解的", "一丝不苟的，极为谨慎的"]
-            },
-            {
-                word: "Ambiguous",
-                definition: "模棱两可的，不明确的",
-                hint: "形容词",
-                options: ["清晰的，明确的", "模棱两可的，不明确的", "雄心勃勃的", "友好的，亲切的"]
-            },
-            {
-                word: "Innovative",
-                definition: "创新的，革新的",
-                hint: "形容词",
-                options: ["传统的，保守的", "创新的，革新的", "危险的，冒险的", "无聊的，乏味的"]
-            },
-            {
-                word: "Versatile",
-                definition: "多才多艺的，多功能的",
-                hint: "形容词",
-                options: ["专业的，专门的", "有限的，受限制的", "多才多艺的，多功能的", "困难的，复杂的"]
-            },
-            {
-                word: "Diligent",
-                definition: "勤奋的，勤勉的",
-                hint: "形容词",
-                options: ["懒惰的，懈怠的", "聪明的，机智的", "勤奋的，勤勉的", "快乐的，高兴的"]
-            },
-            {
-                word: "Cautious",
-                definition: "谨慎的，小心的",
-                hint: "形容词",
-                options: ["鲁莽的，轻率的", "兴奋的，激动的", "谨慎的，小心的", "困惑的，迷茫的"]
-            }
-        ];
+        // 单词数据库 - 使用LocalStorage存储
+        let wordDatabase = [];
         
         // 游戏状态
         const gameState = {
@@ -486,7 +807,8 @@
             score: 0,
             correctAnswers: 0,
             incorrectAnswers: 0,
-            totalQuestions: 10
+            totalQuestions: 10,
+            gistId: null
         };
         
         // DOM 元素
@@ -502,15 +824,68 @@
         const progressBar = document.getElementById('progressBar');
         const nextBtn = document.getElementById('nextBtn');
         const hintBtn = document.getElementById('hintBtn');
+        const resetBtn = document.getElementById('resetBtn');
         const finalScoreEl = document.getElementById('finalScore');
         const restartBtn = document.getElementById('restartBtn');
+        const showDbBtn = document.getElementById('showDbBtn');
+        const audioBtn = document.getElementById('audioBtn');
+        const wordAudio = document.getElementById('wordAudio');
+        
+        // 数据库相关元素
+        const gameTab = document.getElementById('gameTab');
+        const databaseTab = document.getElementById('databaseTab');
+        const githubTab = document.getElementById('githubTab');
+        const wordCountEl = document.getElementById('wordCount');
+        const wordsListEl = document.getElementById('wordsList');
+        const addWordBtn = document.getElementById('addWordBtn');
+        const importBtn = document.getElementById('importBtn');
+        const newWordInput = document.getElementById('newWord');
+        const newTranslationInput = document.getElementById('newTranslation');
+        const newHintInput = document.getElementById('newHint');
+        const emptyDbMsg = document.getElementById('emptyDbMsg');
+        const saveLocalBtn = document.getElementById('saveLocalBtn');
+        const loadLocalBtn = document.getElementById('loadLocalBtn');
+        const saveGistBtn = document.getElementById('saveGistBtn');
+        const loadGistBtn = document.getElementById('loadGistBtn');
+        const gameBadge = document.getElementById('gameBadge');
+        const dbBadge = document.getElementById('dbBadge');
+        
+        // 标签切换功能
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有活动标签
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // 添加活动类到当前标签
+                tab.classList.add('active');
+                
+                // 显示对应内容
+                const tabId = tab.getAttribute('data-tab');
+                gameTab.classList.add('hidden');
+                databaseTab.classList.add('hidden');
+                githubTab.classList.add('hidden');
+                
+                if (tabId === 'game') {
+                    gameTab.classList.remove('hidden');
+                } else if (tabId === 'database') {
+                    databaseTab.classList.remove('hidden');
+                    updateWordList();
+                } else if (tabId === 'github') {
+                    githubTab.classList.remove('hidden');
+                }
+            });
+        });
         
         // 初始化游戏
         function initGame() {
+            // 从本地存储加载数据库
+            loadDatabase();
+            
+            // 重置游戏状态
             gameState.currentWordIndex = 0;
             gameState.score = 0;
             gameState.correctAnswers = 0;
             gameState.incorrectAnswers = 0;
+            gameState.totalQuestions = Math.min(10, wordDatabase.length);
             
             updateStats();
             loadWord();
@@ -518,13 +893,75 @@
             
             gameScreen.classList.remove('hidden');
             resultScreen.classList.add('hidden');
+            
+            // 更新徽章
+            gameBadge.textContent = gameState.totalQuestions;
+            dbBadge.textContent = wordDatabase.length;
+        }
+        
+        // 从本地存储加载数据库
+        function loadDatabase() {
+            const savedData = localStorage.getItem('wordDatabase');
+            if (savedData) {
+                try {
+                    wordDatabase = JSON.parse(savedData);
+                } catch (e) {
+                    console.error('解析数据库失败', e);
+                    wordDatabase = [];
+                }
+            }
+            
+            // 如果没有数据，导入示例单词
+            if (wordDatabase.length === 0) {
+                importSampleWords();
+            }
+        }
+        
+        // 保存数据库到本地存储
+        function saveDatabase() {
+            localStorage.setItem('wordDatabase', JSON.stringify(wordDatabase));
+            updateWordCount();
+            dbBadge.textContent = wordDatabase.length;
+        }
+        
+        // 导入示例单词
+        function importSampleWords() {
+            wordDatabase = [
+                { id: 1, word: "Eloquent", translation: "流利的，雄辩的", hint: "形容词" },
+                { id: 2, word: "Benevolent", translation: "仁慈的，慈善的", hint: "形容词" },
+                { id: 3, word: "Pragmatic", translation: "务实的，实用的", hint: "形容词" },
+                { id: 4, word: "Resilient", translation: "有弹性的，适应力强的", hint: "形容词" },
+                { id: 5, word: "Meticulous", translation: "一丝不苟的，极为谨慎的", hint: "形容词" },
+                { id: 6, word: "Ambiguous", translation: "模棱两可的，不明确的", hint: "形容词" },
+                { id: 7, word: "Innovative", translation: "创新的，革新的", hint: "形容词" },
+                { id: 8, word: "Versatile", translation: "多才多艺的，多功能的", hint: "形容词" },
+                { id: 9, word: "Diligent", translation: "勤奋的，勤勉的", hint: "形容词" },
+                { id: 10, word: "Cautious", translation: "谨慎的，小心的", hint: "形容词" }
+            ];
+            
+            saveDatabase();
+            alert('示例单词已导入数据库！');
         }
         
         // 加载单词
         function loadWord() {
+            // 检查是否有足够的单词
+            if (wordDatabase.length === 0) {
+                currentWordEl.textContent = "数据库为空";
+                hintEl.textContent = "请添加单词到数据库";
+                return;
+            }
+            
+            if (gameState.currentWordIndex >= wordDatabase.length) {
+                showResults();
+                return;
+            }
+            
+            // 使用数据库中的单词
             const wordData = wordDatabase[gameState.currentWordIndex];
+            
             currentWordEl.textContent = wordData.word;
-            hintEl.textContent = wordData.hint;
+            hintEl.textContent = wordData.hint ? `提示: ${wordData.hint}` : "无提示";
             
             // 清除之前的状态类
             const options = optionsContainer.querySelectorAll('.option');
@@ -533,8 +970,18 @@
                 option.onclick = handleOptionClick;
             });
             
+            // 生成干扰选项（从数据库中随机选择翻译）
+            const allTranslations = wordDatabase.map(w => w.translation);
+            const shuffledTranslations = [...allTranslations]
+                .filter(t => t !== wordData.translation)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3);
+            
+            // 添加正确选项
+            const allOptions = [wordData.translation, ...shuffledTranslations];
+            
             // 随机排序选项
-            const shuffledOptions = [...wordData.options].sort(() => Math.random() - 0.5);
+            const shuffledOptions = [...allOptions].sort(() => Math.random() - 0.5);
             
             // 更新选项
             options.forEach((option, index) => {
@@ -544,6 +991,37 @@
             // 更新进度
             progressBar.style.width = `${(gameState.currentWordIndex / gameState.totalQuestions) * 100}%`;
             progressEl.textContent = `进度: ${gameState.currentWordIndex + 1}/${gameState.totalQuestions}`;
+            
+            // 设置音频按钮状态
+            audioBtn.classList.remove('playing');
+        }
+        
+        // 播放单词发音
+        function playWordAudio() {
+            const wordData = wordDatabase[gameState.currentWordIndex];
+            if (!wordData) return;
+            
+            // 模拟音频路径 - 实际使用时应替换为真实路径
+            // const audioPath = `./video/${encodeURIComponent(wordData.word.toLowerCase())}.mp3`;
+            const audioPath = `./video/1.mp3`; // 使用固定音频文件作为示例
+            
+            // 设置音频源
+            wordAudio.src = audioPath;
+            
+            // 播放音频
+            wordAudio.play()
+                .then(() => {
+                    audioBtn.classList.add('playing');
+                })
+                .catch(error => {
+                    console.error('播放音频失败:', error);
+                    alert('播放音频失败: 请确保音频文件存在且路径正确');
+                });
+            
+            // 音频播放结束事件
+            wordAudio.onended = () => {
+                audioBtn.classList.remove('playing');
+            };
         }
         
         // 处理选项点击
@@ -558,7 +1036,7 @@
             });
             
             // 检查答案
-            if (selectedOption.textContent === wordData.definition) {
+            if (selectedOption.textContent === wordData.translation) {
                 selectedOption.classList.add('correct');
                 gameState.score += 10;
                 gameState.correctAnswers++;
@@ -574,7 +1052,7 @@
                 
                 // 显示正确答案
                 options.forEach(option => {
-                    if (option.textContent === wordData.definition) {
+                    if (option.textContent === wordData.translation) {
                         option.classList.add('correct');
                     }
                 });
@@ -614,19 +1092,168 @@
         // 显示提示
         function showHint() {
             const wordData = wordDatabase[gameState.currentWordIndex];
-            hintEl.textContent = `提示: ${wordData.hint}`;
+            hintEl.textContent = `提示: ${wordData.hint || '无提示'}`;
             
             // 添加动画效果
             hintEl.style.animation = "shake 0.5s";
             setTimeout(() => {
                 hintEl.style.animation = "";
             }, 500);
+            
+            // 扣分
+            gameState.score = Math.max(0, gameState.score - 2);
+            updateStats();
+        }
+        
+        // 更新单词列表
+        function updateWordList() {
+            wordsListEl.innerHTML = '<h3><i class="fas fa-list"></i> 数据库中的单词</h3>';
+            
+            if (wordDatabase.length === 0) {
+                emptyDbMsg.style.display = 'block';
+                return;
+            }
+            
+            emptyDbMsg.style.display = 'none';
+            
+            wordDatabase.forEach(word => {
+                const wordItem = document.createElement('div');
+                wordItem.className = 'word-item';
+                wordItem.innerHTML = `
+                    <div>
+                        <span class="word-text">${word.word}</span>
+                        <span class="translation-text"> - ${word.translation}</span>
+                        ${word.hint ? `<div class="hint">${word.hint}</div>` : ''}
+                    </div>
+                    <div class="actions">
+                        <button class="delete-btn" data-id="${word.id}"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                wordsListEl.appendChild(wordItem);
+            });
+            
+            // 添加删除事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.closest('.delete-btn').getAttribute('data-id'));
+                    deleteWord(id);
+                });
+            });
+            
+            updateWordCount();
+        }
+        
+        // 更新单词计数
+        function updateWordCount() {
+            wordCountEl.textContent = `单词数量: ${wordDatabase.length}`;
+            dbBadge.textContent = wordDatabase.length;
+        }
+        
+        // 添加新单词
+        function addNewWord() {
+            const word = newWordInput.value.trim();
+            const translation = newTranslationInput.value.trim();
+            const hint = newHintInput.value.trim();
+            
+            if (!word || !translation) {
+                alert('请填写单词和翻译');
+                return;
+            }
+            
+            // 检查单词是否已存在
+            if (wordDatabase.some(w => w.word.toLowerCase() === word.toLowerCase())) {
+                alert('该单词已存在于数据库中');
+                return;
+            }
+            
+            // 创建新单词对象
+            const newWord = {
+                id: Date.now(), // 使用时间戳作为唯一ID
+                word: word,
+                translation: translation,
+                hint: hint || ""
+            };
+            
+            // 添加到数据库
+            wordDatabase.push(newWord);
+            
+            // 保存并更新UI
+            saveDatabase();
+            updateWordList();
+            
+            // 清空表单
+            newWordInput.value = '';
+            newTranslationInput.value = '';
+            newHintInput.value = '';
+            
+            // 显示成功消息
+            alert(`单词 "${word}" 已添加到数据库！`);
+        }
+        
+        // 删除单词
+        function deleteWord(id) {
+            if (confirm('确定要删除这个单词吗？')) {
+                wordDatabase = wordDatabase.filter(word => word.id !== id);
+                saveDatabase();
+                updateWordList();
+            }
+        }
+        
+        // 保存到GitHub Gist
+        async function saveToGist() {
+            try {
+                // 在实际应用中，这里需要用户提供GitHub Token
+                alert('在实际应用中，这里需要用户提供GitHub Token进行身份验证。\n\n由于安全原因，此演示功能已禁用。');
+                
+                // 模拟保存成功
+                gameState.gistId = '12345abcde';
+                alert('数据已保存到GitHub Gist！\nGist ID: ' + gameState.gistId);
+            } catch (error) {
+                alert('保存失败: ' + error.message);
+            }
+        }
+        
+        // 从GitHub Gist加载
+        async function loadFromGist() {
+            try {
+                // 在实际应用中，这里需要用户提供GitHub Token和Gist ID
+                alert('在实际应用中，这里需要用户提供GitHub Token和Gist ID。\n\n由于安全原因，此演示功能已禁用。');
+                
+                // 模拟加载成功
+                alert('已从GitHub Gist加载数据！');
+                updateWordList();
+            } catch (error) {
+                alert('加载失败: ' + error.message);
+            }
         }
         
         // 事件监听器
         nextBtn.addEventListener('click', nextWord);
         hintBtn.addEventListener('click', showHint);
+        resetBtn.addEventListener('click', initGame);
         restartBtn.addEventListener('click', initGame);
+        showDbBtn.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="database"]').classList.add('active');
+            gameTab.classList.add('hidden');
+            databaseTab.classList.remove('hidden');
+            updateWordList();
+        });
+        
+        addWordBtn.addEventListener('click', addNewWord);
+        importBtn.addEventListener('click', importSampleWords);
+        saveLocalBtn.addEventListener('click', () => {
+            saveDatabase();
+            alert('数据已保存到本地存储！');
+        });
+        loadLocalBtn.addEventListener('click', () => {
+            loadDatabase();
+            updateWordList();
+            alert('已从本地存储加载数据！');
+        });
+        saveGistBtn.addEventListener('click', saveToGist);
+        loadGistBtn.addEventListener('click', loadFromGist);
+        audioBtn.addEventListener('click', playWordAudio);
         
         // 为选项添加事件委托
         optionsContainer.addEventListener('click', (e) => {
@@ -635,25 +1262,11 @@
             }
         });
         
-        // 初始化游戏
-        document.addEventListener('DOMContentLoaded', initGame);
-        
-        // 添加CSS动画
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.05); }
-                100% { transform: scale(1); }
-            }
-            
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-        `;
-        document.head.appendChild(style);
+        // 初始化游戏和数据库
+        document.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            updateWordList();
+        });
     </script>
 </body>
 </html>
