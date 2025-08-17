@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Master - 单词记忆游戏</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            color: var(--dark);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+            padding: 1rem;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.2rem 2rem;
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .game-content {
+            padding: 2rem;
+        }
+        
+        .word-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .word {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+            letter-spacing: 1px;
+        }
+        
+        .hint {
+            font-size: 1.1rem;
+            color: var(--gray);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 600px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .option {
+            padding: 1.2rem;
+            background: var(--light);
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .option.correct {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .option.incorrect {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 1px solid #dee2e6;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        .result-screen {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .result-icon {
+            font-size: 5rem;
+            color: var(--success);
+            margin-bottom: 1.5rem;
+        }
+        
+        .result-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .score {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+        }
+        
+        .github-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-top: 1rem;
+        }
+        
+        .github-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+        
+        .github-steps {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 1.2rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .step:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .heart {
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-book"></i> Word Master</h1>
+            <p class="subtitle">通过游戏提高你的词汇量 - 选择正确的单词释义</p>
+        </header>
+        
+        <div class="game-container">
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <i class="fas fa-star"></i>
+                    <span id="score">得分: 0</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="correct">正确: 0</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-times-circle"></i>
+                    <span id="incorrect">错误: 0</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-list-ol"></i>
+                    <span id="progress">进度: 1/10</span>
+                </div>
+            </div>
+            
+            <div class="game-content" id="gameScreen">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                
+                <div class="word-display">
+                    <h2>单词</h2>
+                    <div class="word" id="currentWord">Eloquent</div>
+                    <p class="hint" id="hint">形容词</p>
+                </div>
+                
+                <div class="options-container" id="optionsContainer">
+                    <div class="option" data-value="1">流利的，雄辩的</div>
+                    <div class="option" data-value="2">模糊的，不清楚的</div>
+                    <div class="option" data-value="3">优雅的，精致的</div>
+                    <div class="option" data-value="4">古老的，过时的</div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-secondary" id="hintBtn">
+                        <i class="fas fa-lightbulb"></i> 提示
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" disabled>
+                        下一题 <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="result-screen hidden" id="resultScreen">
+                <div class="result-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h2 class="result-title">游戏完成!</h2>
+                <p>你的最终得分</p>
+                <div class="score" id="finalScore">0</div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="restartBtn">
+                        <i class="fas fa-redo"></i> 重新开始
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="github-section">
+            <div class="github-header">
+                <i class="fab fa-github fa-2x"></i>
+                <h2>如何部署到 GitHub Pages</h2>
+            </div>
+            <div class="github-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h3>创建 GitHub 仓库</h3>
+                        <p>登录 GitHub 并创建一个新的公共仓库，命名为 username.github.io (username 是你的 GitHub 用户名)</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h3>上传游戏文件</h3>
+                        <p>将此 HTML 文件命名为 index.html，并上传到仓库的根目录或 docs 文件夹</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h3>配置 GitHub Pages</h3>
+                        <p>在仓库设置中，找到 GitHub Pages 部分，选择主分支（或 docs 文件夹）作为源</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>
+                        <h3>访问你的游戏</h3>
+                        <p>等待几分钟，然后访问 https://username.github.io 即可玩游戏</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>用 <span class="heart">❤</span> 制作 | Word Master 单词记忆游戏 | 轻松部署到 GitHub Pages</p>
+    </footer>
+    
+    <script>
+        // 单词数据库
+        const wordDatabase = [
+            {
+                word: "Eloquent",
+                definition: "流利的，雄辩的",
+                hint: "形容词",
+                options: ["流利的，雄辩的", "模糊的，不清楚的", "优雅的，精致的", "古老的，过时的"]
+            },
+            {
+                word: "Benevolent",
+                definition: "仁慈的，慈善的",
+                hint: "形容词",
+                options: ["邪恶的，有害的", "仁慈的，慈善的", "巨大的，庞大的", "普通的，平凡的"]
+            },
+            {
+                word: "Pragmatic",
+                definition: "务实的，实用的",
+                hint: "形容词",
+                options: ["理想的，完美的", "复杂的，难懂的", "务实的，实用的", "随机的，任意的"]
+            },
+            {
+                word: "Resilient",
+                definition: "有弹性的，适应力强的",
+                hint: "形容词",
+                options: ["僵硬的，死板的", "脆弱的，易碎的", "有弹性的，适应力强的", "懒惰的，不活跃的"]
+            },
+            {
+                word: "Meticulous",
+                definition: "一丝不苟的，极为谨慎的",
+                hint: "形容词",
+                options: ["粗心的，马虎的", "慷慨的，大方的", "神秘的，难解的", "一丝不苟的，极为谨慎的"]
+            },
+            {
+                word: "Ambiguous",
+                definition: "模棱两可的，不明确的",
+                hint: "形容词",
+                options: ["清晰的，明确的", "模棱两可的，不明确的", "雄心勃勃的", "友好的，亲切的"]
+            },
+            {
+                word: "Innovative",
+                definition: "创新的，革新的",
+                hint: "形容词",
+                options: ["传统的，保守的", "创新的，革新的", "危险的，冒险的", "无聊的，乏味的"]
+            },
+            {
+                word: "Versatile",
+                definition: "多才多艺的，多功能的",
+                hint: "形容词",
+                options: ["专业的，专门的", "有限的，受限制的", "多才多艺的，多功能的", "困难的，复杂的"]
+            },
+            {
+                word: "Diligent",
+                definition: "勤奋的，勤勉的",
+                hint: "形容词",
+                options: ["懒惰的，懈怠的", "聪明的，机智的", "勤奋的，勤勉的", "快乐的，高兴的"]
+            },
+            {
+                word: "Cautious",
+                definition: "谨慎的，小心的",
+                hint: "形容词",
+                options: ["鲁莽的，轻率的", "兴奋的，激动的", "谨慎的，小心的", "困惑的，迷茫的"]
+            }
+        ];
+        
+        // 游戏状态
+        const gameState = {
+            currentWordIndex: 0,
+            score: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            totalQuestions: 10
+        };
+        
+        // DOM 元素
+        const gameScreen = document.getElementById('gameScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const currentWordEl = document.getElementById('currentWord');
+        const hintEl = document.getElementById('hint');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const scoreEl = document.getElementById('score');
+        const correctEl = document.getElementById('correct');
+        const incorrectEl = document.getElementById('incorrect');
+        const progressEl = document.getElementById('progress');
+        const progressBar = document.getElementById('progressBar');
+        const nextBtn = document.getElementById('nextBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const finalScoreEl = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        
+        // 初始化游戏
+        function initGame() {
+            gameState.currentWordIndex = 0;
+            gameState.score = 0;
+            gameState.correctAnswers = 0;
+            gameState.incorrectAnswers = 0;
+            
+            updateStats();
+            loadWord();
+            nextBtn.disabled = true;
+            
+            gameScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+        }
+        
+        // 加载单词
+        function loadWord() {
+            const wordData = wordDatabase[gameState.currentWordIndex];
+            currentWordEl.textContent = wordData.word;
+            hintEl.textContent = wordData.hint;
+            
+            // 清除之前的状态类
+            const options = optionsContainer.querySelectorAll('.option');
+            options.forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+                option.onclick = handleOptionClick;
+            });
+            
+            // 随机排序选项
+            const shuffledOptions = [...wordData.options].sort(() => Math.random() - 0.5);
+            
+            // 更新选项
+            options.forEach((option, index) => {
+                option.textContent = shuffledOptions[index];
+            });
+            
+            // 更新进度
+            progressBar.style.width = `${(gameState.currentWordIndex / gameState.totalQuestions) * 100}%`;
+            progressEl.textContent = `进度: ${gameState.currentWordIndex + 1}/${gameState.totalQuestions}`;
+        }
+        
+        // 处理选项点击
+        function handleOptionClick(e) {
+            const selectedOption = e.target;
+            const wordData = wordDatabase[gameState.currentWordIndex];
+            const options = optionsContainer.querySelectorAll('.option');
+            
+            // 禁用所有选项
+            options.forEach(option => {
+                option.onclick = null;
+            });
+            
+            // 检查答案
+            if (selectedOption.textContent === wordData.definition) {
+                selectedOption.classList.add('correct');
+                gameState.score += 10;
+                gameState.correctAnswers++;
+                
+                // 添加动画效果
+                selectedOption.style.animation = "pulse 0.5s";
+                setTimeout(() => {
+                    selectedOption.style.animation = "";
+                }, 500);
+            } else {
+                selectedOption.classList.add('incorrect');
+                gameState.incorrectAnswers++;
+                
+                // 显示正确答案
+                options.forEach(option => {
+                    if (option.textContent === wordData.definition) {
+                        option.classList.add('correct');
+                    }
+                });
+            }
+            
+            // 更新状态
+            updateStats();
+            nextBtn.disabled = false;
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            scoreEl.textContent = `得分: ${gameState.score}`;
+            correctEl.textContent = `正确: ${gameState.correctAnswers}`;
+            incorrectEl.textContent = `错误: ${gameState.incorrectAnswers}`;
+        }
+        
+        // 下一题
+        function nextWord() {
+            gameState.currentWordIndex++;
+            
+            if (gameState.currentWordIndex < gameState.totalQuestions) {
+                loadWord();
+                nextBtn.disabled = true;
+            } else {
+                showResults();
+            }
+        }
+        
+        // 显示结果
+        function showResults() {
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            finalScoreEl.textContent = gameState.score;
+        }
+        
+        // 显示提示
+        function showHint() {
+            const wordData = wordDatabase[gameState.currentWordIndex];
+            hintEl.textContent = `提示: ${wordData.hint}`;
+            
+            // 添加动画效果
+            hintEl.style.animation = "shake 0.5s";
+            setTimeout(() => {
+                hintEl.style.animation = "";
+            }, 500);
+        }
+        
+        // 事件监听器
+        nextBtn.addEventListener('click', nextWord);
+        hintBtn.addEventListener('click', showHint);
+        restartBtn.addEventListener('click', initGame);
+        
+        // 为选项添加事件委托
+        optionsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('option')) {
+                handleOptionClick(e);
+            }
+        });
+        
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', initGame);
+        
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
