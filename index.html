@@ -524,29 +524,6 @@
             height: 16px;
         }
         
-        /* 英文台词提示框 */
-        .english-tooltip {
-            position: fixed;
-            background-color: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            z-index: 1000;
-            max-width: 400px;
-            font-size: 16px;
-            line-height: 1.5;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            pointer-events: none;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.3s, transform 0.3s;
-        }
-        
-        .english-tooltip.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
         /* 语法分析提示框 */
         .syntax-tooltip {
             position: fixed;
@@ -809,12 +786,6 @@
                 justify-content: center;
             }
             
-            .english-tooltip {
-                max-width: 300px;
-                font-size: 14px;
-                padding: 8px 12px;
-            }
-            
             .syntax-tooltip {
                 max-width: 300px;
                 font-size: 13px;
@@ -844,7 +815,6 @@
             <span>数据已缓存</span>
         </div>
         
-        <div class="english-tooltip" id="englishTooltip"></div>
         <div class="syntax-tooltip" id="syntaxTooltip"></div>
         
         <header>
@@ -913,16 +883,8 @@
                     <label for="colChinese">中文台词</label>
                 </div>
                 <div class="column-option">
-                    <input type="checkbox" id="colAudio" data-column="6">
+                    <input type="checkbox" id="colAudio" checked data-column="6">
                     <label for="colAudio">台词音频</label>
-                </div>
-                <div class="column-option">
-                    <input type="checkbox" id="colCode" data-column="7">
-                    <label for="colCode">编码</label>
-                </div>
-                <div class="column-option">
-                    <input type="checkbox" id="colList" data-column="8">
-                    <label for="colList">列表</label>
                 </div>
             </div>
         </div>
@@ -967,8 +929,6 @@
                         <th>英文台词</th>
                         <th>中文台词</th>
                         <th>台词音频</th>
-                        <th>编码</th>
-                        <th>列表</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1084,7 +1044,6 @@
             const cardContent = document.getElementById('cardContent');
             const columnCheckboxes = document.querySelectorAll('.column-checkboxes input[type="checkbox"]');
             const cacheIndicator = document.getElementById('cacheIndicator');
-            const englishTooltip = document.getElementById('englishTooltip');
             const syntaxTooltip = document.getElementById('syntaxTooltip');
             const selectAllPlaylist = document.getElementById('selectAllPlaylist');
             
@@ -1294,7 +1253,7 @@
             
             // 自动加载默认Excel文件
             function loadDefaultExcel() {
-                fetch('./excel/xiaoqian.xlsx')
+                fetch('./excel/千与千寻.xlsx')
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('文件加载失败: ' + response.statusText);
@@ -1307,22 +1266,7 @@
                         const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
                         
                         // 处理数据（跳过标题行）
-                        tableData = jsonData.slice(1).map(row => {
-                            return {
-                                index: row[0] || '',
-                                time: row[1] || '',
-                                character: row[2] || '',
-                                english: row[3] || '',
-                                chinese: row[4] || '',
-                                audio: row[5] || '',
-                                code: row[6] || '',
-                                list: row[7] || '',
-                                audioFile: null,
-                                lexicalData: null,
-                                syntacticData: null,
-                                visible: true
-                            };
-                        });
+                        tableData = jsonData.slice(1).map(mapExcelData);
                         
                         // 保存到缓存
                         saveToCache();
@@ -1354,22 +1298,7 @@
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
                     
                     // 处理数据（跳过标题行）
-                    tableData = jsonData.slice(1).map(row => {
-                        return {
-                            index: row[0] || '',
-                            time: row[1] || '',
-                            character: row[2] || '',
-                            english: row[3] || '',
-                            chinese: row[4] || '',
-                            audio: row[5] || '',
-                            code: row[6] || '',
-                            list: row[7] || '',
-                            audioFile: null,
-                            lexicalData: null,
-                            syntacticData: null,
-                            visible: true
-                        };
-                    });
+                    tableData = jsonData.slice(1).map(mapExcelData);
                     
                     // 保存到缓存
                     saveToCache();
@@ -1383,6 +1312,23 @@
                 reader.readAsArrayBuffer(file);
             }
             
+            // 数据映射函数
+            function mapExcelData(row) {
+                return {
+                    index: row[0] || '',
+                    time: row[1] || '',
+                    character: row[2] || '',
+                    english: row[3] || '',
+                    chinese: row[4] || '',
+                    audio: row[5] || '',
+                    code: row[6] || '',
+                    audioFile: null,
+                    lexicalData: null,
+                    syntacticData: null,
+                    visible: true
+                };
+            }
+            
             // 使用示例数据
             function useSampleData() {
                 tableData = [
@@ -1394,7 +1340,6 @@
                         chinese: "妈妈，爸爸，请等等我！",
                         audio: "",
                         code: "AAD,ACC,ADA",
-                        list: "",
                         audioFile: null,
                         visible: true
                     },
@@ -1406,7 +1351,6 @@
                         chinese: "你必须记住你真正的名字。",
                         audio: "",
                         code: "AAA,ACB,ADB",
-                        list: "",
                         audioFile: null,
                         visible: true
                     },
@@ -1418,7 +1362,6 @@
                         chinese: "努力工作，永远不要抱怨。",
                         audio: "",
                         code: "AAC,ABB,ADA",
-                        list: "",
                         audioFile: null,
                         visible: true
                     }
@@ -1474,8 +1417,6 @@
                         <td>${data.english}</td>
                         <td>${data.chinese}</td>
                         <td>${audioCellContent}</td>
-                        <td>${data.code}</td>
-                        <td>${data.list}</td>
                     `;
                     
                     // 添加悬停效果
@@ -1541,58 +1482,27 @@
                         saveToCache();
                     });
                     
-                    // 为英文台词单元格添加提示框功能
+                    // 为英文台词单元格添加语法提示功能
                     const englishCell = row.querySelector('td:nth-child(5)');
-                    setupEnglishTooltip(englishCell, data);
+                    setupSyntaxTooltip(englishCell, data);
                 });
-                
-                // 默认隐藏某些列
-                hideColumnsByDefault();
             }
             
-            // 默认隐藏某些列
-            function hideColumnsByDefault() {
-                // 隐藏音频列、编码列和列表列
-                const columnsToHide = [6, 7, 8];
-                
-                columnsToHide.forEach(colIndex => {
-                    const columns = table.querySelectorAll(`tr > *:nth-child(${colIndex + 1})`);
-                    columns.forEach(col => col.style.display = 'none');
-                });
-                
-                // 更新复选框状态
-                document.getElementById('colAudio').checked = false;
-                document.getElementById('colCode').checked = false;
-                document.getElementById('colList').checked = false;
-            }
-            
-            // 设置英文台词提示框功能
-            function setupEnglishTooltip(cell, rowData) {
+            // 设置语法提示功能
+            function setupSyntaxTooltip(cell, rowData) {
                 // 鼠标移入事件
                 cell.addEventListener('mouseenter', function(e) {
-                    const text = this.textContent;
-                    if (!text) return;
-                    
-                    // 更新英文台词提示框内容和位置
-                    englishTooltip.textContent = text;
-                    englishTooltip.style.left = e.pageX + 'px';
-                    englishTooltip.style.top = (e.pageY - 50) + 'px';
-                    englishTooltip.classList.add('visible');
-                    
                     // 显示语法分析提示框
                     showSyntaxTooltip(e, rowData);
                 });
                 
                 // 鼠标移动事件 - 更新提示框位置
                 cell.addEventListener('mousemove', function(e) {
-                    englishTooltip.style.left = e.pageX + 'px';
-                    englishTooltip.style.top = (e.pageY - 50) + 'px';
                     updateSyntaxTooltipPosition(e);
                 });
                 
                 // 鼠标移出事件
                 cell.addEventListener('mouseleave', function() {
-                    englishTooltip.classList.remove('visible');
                     syntaxTooltip.classList.remove('visible');
                 });
             }
@@ -1673,15 +1583,17 @@
                     `;
                 }
                 
+                // 固定在鼠标右上方50px处
                 syntaxTooltip.style.left = (e.pageX + 20) + 'px';
-                syntaxTooltip.style.top = (e.pageY - 150) + 'px';
+                syntaxTooltip.style.top = (e.pageY - 50) + 'px';
                 syntaxTooltip.classList.add('visible');
             }
             
             // 更新语法提示框位置
             function updateSyntaxTooltipPosition(e) {
+                // 固定在鼠标右上方50px处
                 syntaxTooltip.style.left = (e.pageX + 20) + 'px';
-                syntaxTooltip.style.top = (e.pageY - 150) + 'px';
+                syntaxTooltip.style.top = (e.pageY - 50) + 'px';
             }
             
             // 解析编码为语法信息
@@ -1815,9 +1727,9 @@
                     saveToCache();
                 });
                 
-                // 重新绑定英文台词提示框
+                // 重新绑定语法提示功能
                 const englishCell = row.querySelector('td:nth-child(5)');
-                setupEnglishTooltip(englishCell, data);
+                setupSyntaxTooltip(englishCell, data);
             }
             
             // 播放音频函数
