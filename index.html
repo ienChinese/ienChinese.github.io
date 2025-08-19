@@ -72,7 +72,7 @@
             flex-wrap: wrap;
         }
         
-        .file-upload-btn, .edit-columns-btn, .playlist-btn, .row-edit-btn {
+        .edit-columns-btn, .playlist-btn, .row-edit-btn {
             padding: 12px 25px;
             border: none;
             border-radius: 50px;
@@ -84,11 +84,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-        
-        .file-upload-btn {
-            background: linear-gradient(to right, #00b09b, #96c93d);
-            color: white;
         }
         
         .edit-columns-btn {
@@ -106,13 +101,9 @@
             color: white;
         }
         
-        .file-upload-btn:hover, .edit-columns-btn:hover, .playlist-btn:hover, .row-edit-btn:hover {
+        .edit-columns-btn:hover, .playlist-btn:hover, .row-edit-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .file-input {
-            display: none;
         }
         
         /* 缓存指示器 */
@@ -507,6 +498,8 @@
             opacity: 0;
             transform: translateY(10px);
             transition: opacity 0.3s, transform 0.3s;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         
         .syntax-tooltip.visible {
@@ -584,10 +577,18 @@
             animation: cardAppear 0.4s forwards;
         }
         
+        .playlist-table-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            padding: 5px;
+        }
+        
         .playlist-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
         
         .playlist-table th {
@@ -596,6 +597,8 @@
             text-align: left;
             font-weight: 600;
             color: #495057;
+            position: sticky;
+            top: 0;
         }
         
         .playlist-table td {
@@ -720,7 +723,7 @@
                 justify-content: center;
             }
             
-            .file-upload-btn, .edit-columns-btn, .playlist-btn, .row-edit-btn {
+            .edit-columns-btn, .playlist-btn, .row-edit-btn {
                 width: 100%;
                 max-width: 300px;
                 justify-content: center;
@@ -788,16 +791,6 @@
             <div class="header-content">
                 <h1>千与千寻</h1>
                 <div class="header-buttons">
-                    <button class="file-upload-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        加载台词文件
-                    </button>
-                    <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls">
-                    
                     <button class="edit-columns-btn" id="editColumnsBtn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="3"></circle>
@@ -829,10 +822,6 @@
         <div class="column-editor" id="columnEditor">
             <h3>选择要显示的列</h3>
             <div class="column-checkboxes">
-                <div class="column-option">
-                    <input type="checkbox" id="colIndex" checked data-column="1">
-                    <label for="colIndex">序号</label>
-                </div>
                 <div class="column-option">
                     <input type="checkbox" id="colTime" checked data-column="2">
                     <label for="colTime">时间</label>
@@ -953,19 +942,21 @@
                     <h2 class="card-title">播放列表</h2>
                 </div>
                 <div class="card-content">
-                    <table class="playlist-table" id="playlistTable">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="selectAllPlaylist"></th>
-                                <th>序号</th>
-                                <th>英文台词</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="playlistTableBody">
-                            <!-- 播放列表内容将在这里动态生成 -->
-                        </tbody>
-                    </table>
+                    <div class="playlist-table-container">
+                        <table class="playlist-table" id="playlistTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAllPlaylist"></th>
+                                    <th>序号</th>
+                                    <th>英文台词</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playlistTableBody">
+                                <!-- 播放列表内容将在这里动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
                     
                     <div class="playlist-controls">
                         <button class="playlist-btn-action play-btn" id="playSelectedBtn">
@@ -990,8 +981,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 元素引用
-            const fileInput = document.getElementById('fileInput');
-            const fileUploadBtn = document.querySelector('.file-upload-btn');
             const editColumnsBtn = document.getElementById('editColumnsBtn');
             const playlistBtn = document.getElementById('playlistBtn');
             const rowEditBtn = document.getElementById('rowEditBtn');
@@ -1090,19 +1079,6 @@
             
             // 自动加载默认Excel文件
             loadDefaultExcel();
-            
-            // 文件上传按钮事件
-            fileUploadBtn.addEventListener('click', function() {
-                fileInput.click();
-            });
-            
-            // 文件选择事件
-            fileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                processExcelFile(file);
-            });
             
             // 编辑列按钮事件
             editColumnsBtn.addEventListener('click', function() {
@@ -1252,34 +1228,6 @@
                     });
             }
             
-            // 处理Excel文件
-            function processExcelFile(file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    
-                    // 获取第一个工作表
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    
-                    // 将工作表转换为JSON
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                    
-                    // 处理数据（跳过标题行）
-                    tableData = jsonData.slice(1).map(mapExcelData);
-                    
-                    // 保存到缓存
-                    saveToCache();
-                    
-                    // 填充表格
-                    populateTable();
-                    
-                    // 显示缓存指示器
-                    showCacheIndicator();
-                };
-                reader.readAsArrayBuffer(file);
-            }
-            
             // 数据映射函数
             function mapExcelData(row) {
                 // 生成音频文件名（时间值替换冒号为点）
@@ -1331,6 +1279,56 @@
                         code: "AAC,ABB,ADA",
                         audioFile: "./mp3/en/00.25.18.en.mp3",
                         visible: true
+                    },
+                    {
+                        index: "4",
+                        time: "00:32:10",
+                        character: "汤婆婆",
+                        english: "If you want to survive here, you must work!",
+                        chinese: "如果你想在这里生存，就必须工作！",
+                        code: "ABCCF,ACB,ADA",
+                        audioFile: "./mp3/en/00.32.10.en.mp3",
+                        visible: true
+                    },
+                    {
+                        index: "5",
+                        time: "00:45:22",
+                        character: "无脸男",
+                        english: "I'm lonely... so lonely.",
+                        chinese: "我很孤独...太孤独了。",
+                        code: "AAA,ACC,ADA",
+                        audioFile: "./mp3/en/00.45.22.en.mp3",
+                        visible: true
+                    },
+                    {
+                        index: "6",
+                        time: "01:05:37",
+                        character: "千寻",
+                        english: "I remember when I was little, I fell into a river.",
+                        chinese: "我记得小时候，我掉进了一条河里。",
+                        code: "ABCAB,ACB,ADB",
+                        audioFile: "./mp3/en/01.05.37.en.mp3",
+                        visible: true
+                    },
+                    {
+                        index: "7",
+                        time: "01:18:49",
+                        character: "白龙",
+                        english: "Your real name is Chihiro.",
+                        chinese: "你真正的名字是千寻。",
+                        code: "AAA,ACC,ADA",
+                        audioFile: "./mp3/en/01.18.49.en.mp3",
+                        visible: true
+                    },
+                    {
+                        index: "8",
+                        time: "01:30:15",
+                        character: "钱婆婆",
+                        english: "The best things happen by chance.",
+                        chinese: "最好的事情都是偶然发生的。",
+                        code: "AAA,ACB,ADA",
+                        audioFile: "./mp3/en/01.30.15.en.mp3",
+                        visible: true
                     }
                 ];
                 
@@ -1353,7 +1351,7 @@
                     
                     const row = document.createElement('tr');
                     
-                    // 音频单元格处理 - 只保留图标，去掉文字
+                    // 音频单元格处理 - 只保留图标
                     let audioCellContent = '';
                     if (data.audioFile) {
                         audioCellContent = `
@@ -1504,16 +1502,37 @@
                 }
                 
                 // 固定在鼠标右上方50px处
-                syntaxTooltip.style.left = (e.pageX + 50) + 'px';
-                syntaxTooltip.style.top = (e.pageY - 50) + 'px';
+                updateSyntaxTooltipPosition(e);
                 syntaxTooltip.classList.add('visible');
             }
             
             // 更新语法提示框位置
             function updateSyntaxTooltipPosition(e) {
-                // 固定在鼠标右上方50px处
-                syntaxTooltip.style.left = (e.pageX + 50) + 'px';
-                syntaxTooltip.style.top = (e.pageY - 50) + 'px';
+                const tooltipWidth = syntaxTooltip.offsetWidth;
+                const tooltipHeight = syntaxTooltip.offsetHeight;
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                
+                let left = e.pageX + 50;
+                let top = e.pageY - 50;
+                
+                // 如果提示框会超出右边界
+                if (left + tooltipWidth > windowWidth) {
+                    left = e.pageX - tooltipWidth - 20;
+                }
+                
+                // 如果提示框会超出下边界
+                if (top + tooltipHeight > windowHeight) {
+                    top = e.pageY - tooltipHeight - 20;
+                }
+                
+                // 确保不会超出上边界
+                if (top < 0) {
+                    top = 10;
+                }
+                
+                syntaxTooltip.style.left = left + 'px';
+                syntaxTooltip.style.top = top + 'px';
             }
             
             // 解析编码为语法信息
