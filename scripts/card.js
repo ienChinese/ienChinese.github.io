@@ -3,8 +3,9 @@ import {
     currentCardData, 
     currentRowIndex, 
     saveToCache, 
-    parseCode 
 } from './data.js';
+
+import { parseCode } from './syntax.js'; // 从正确模块导入
 
 // 卡片元素
 const overlay = document.getElementById('overlay');

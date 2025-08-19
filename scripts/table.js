@@ -1,9 +1,9 @@
 import { 
     tableData, 
     saveToCache, 
-    playAudio,
-    parseCode
+    playAudio
 } from './data.js';
+import { parseCode } from './syntax.js'; // 从正确模块导入
 
 // 表格容器元素
 const table = document.getElementById('dialogueTable');
