@@ -214,42 +214,6 @@
             justify-content: center;
         }
         
-        .audio-cell .audio-placeholder {
-            color: #666;
-            font-style: italic;
-            padding: 8px 12px;
-            border-radius: 20px;
-            background-color: #f0f5ff;
-            transition: all 0.3s;
-        }
-        
-        .audio-cell .audio-placeholder:hover {
-            background-color: #e0ebff;
-        }
-        
-        .audio-cell .audio-icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-color: #4CAF50;
-            border-radius: 50%;
-            position: relative;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        .audio-cell .audio-icon::before {
-            content: '';
-            position: absolute;
-            top: 7px;
-            left: 9px;
-            width: 0;
-            height: 0;
-            border-top: 5px solid transparent;
-            border-bottom: 5px solid transparent;
-            border-left: 8px solid white;
-        }
-        
         .audio-cell .audio-controls {
             display: flex;
             align-items: center;
@@ -264,23 +228,26 @@
             background-color: #e0ebff;
         }
         
-        .audio-cell .add-audio-btn {
+        .audio-cell .audio-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
             background-color: #4CAF50;
-            color: white;
-            border: none;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
+            position: relative;
+            margin-right: 8px;
         }
         
-        .audio-cell .add-audio-btn:hover {
-            background-color: #3d8b40;
+        .audio-cell .audio-icon::before {
+            content: '';
+            position: absolute;
+            top: 7px;
+            left: 9px;
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 8px solid white;
         }
         
         /* 卡片样式 */
@@ -968,13 +935,7 @@
                     </div>
                     
                     <div class="audio-section">
-                        <button class="analysis-btn add-audio-btn-card" id="addAudioBtnCard">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14"></path>
-                                <path d="M5 12h14"></path>
-                            </svg>
-                            添加音频文件
-                        </button>
+                        <audio controls class="audio-player" id="cardAudioPlayer"></audio>
                     </div>
                     
                     <div class="analysis-section">
@@ -1046,6 +1007,7 @@
             const cacheIndicator = document.getElementById('cacheIndicator');
             const syntaxTooltip = document.getElementById('syntaxTooltip');
             const selectAllPlaylist = document.getElementById('selectAllPlaylist');
+            const cardAudioPlayer = document.getElementById('cardAudioPlayer');
             
             // 表格数据存储 - 初始化为空数组
             let tableData = [];
@@ -1219,12 +1181,13 @@
                 saveToCache();
             });
             
-            // 双击行事件
+            // 双击行事件 - 修复
             tableBody.addEventListener('dblclick', function(e) {
                 const row = e.target.closest('tr');
                 if (!row) return;
                 
-                const rowIndex = Array.from(row.parentNode.children).indexOf(row) - 1;
+                // 获取行索引（直接使用行索引）
+                const rowIndex = Array.from(tableBody.children).indexOf(row);
                 if (rowIndex >= 0 && rowIndex < tableData.length) {
                     currentRowIndex = rowIndex;
                     currentCardData = tableData[rowIndex];
@@ -1249,6 +1212,11 @@
             // 关闭卡片函数
             function closeCardHandler() {
                 overlay.style.display = 'none';
+                // 停止卡片中的音频播放
+                if (cardAudioPlayer) {
+                    cardAudioPlayer.pause();
+                    cardAudioPlayer.currentTime = 0;
+                }
             }
             
             // 自动加载默认Excel文件
@@ -1314,15 +1282,17 @@
             
             // 数据映射函数
             function mapExcelData(row) {
+                // 生成音频文件名（时间值替换冒号为点）
+                const audioFileName = row[1] ? `${row[1].replace(/:/g, '.')}.en.mp3` : '';
+                
                 return {
                     index: row[0] || '',
                     time: row[1] || '',
                     character: row[2] || '',
                     english: row[3] || '',
                     chinese: row[4] || '',
-                    audio: row[5] || '',
-                    code: row[6] || '',
-                    audioFile: null,
+                    code: row[5] || '',
+                    audioFile: audioFileName ? `./mp3/en/${audioFileName}` : null,
                     lexicalData: null,
                     syntacticData: null,
                     visible: true
@@ -1338,9 +1308,8 @@
                         character: "千寻",
                         english: "Mom, Dad, please wait for me!",
                         chinese: "妈妈，爸爸，请等等我！",
-                        audio: "",
                         code: "AAD,ACC,ADA",
-                        audioFile: null,
+                        audioFile: "./mp3/en/00.05.23.en.mp3",
                         visible: true
                     },
                     {
@@ -1349,9 +1318,8 @@
                         character: "白龙",
                         english: "You must remember your real name.",
                         chinese: "你必须记住你真正的名字。",
-                        audio: "",
                         code: "AAA,ACB,ADB",
-                        audioFile: null,
+                        audioFile: "./mp3/en/00.12.45.en.mp3",
                         visible: true
                     },
                     {
@@ -1360,9 +1328,8 @@
                         character: "锅炉爷爷",
                         english: "Work hard and never complain.",
                         chinese: "努力工作，永远不要抱怨。",
-                        audio: "",
                         code: "AAC,ABB,ADA",
-                        audioFile: null,
+                        audioFile: "./mp3/en/00.25.18.en.mp3",
                         visible: true
                     }
                 ];
@@ -1391,20 +1358,18 @@
                     if (data.audioFile) {
                         audioCellContent = `
                             <div class="audio-cell">
-                                <div class="audio-controls">
+                                <div class="audio-controls" data-audio="${data.audioFile}">
                                     <span class="audio-icon"></span>
                                     <span>播放音频</span>
                                 </div>
-                                <button class="add-audio-btn">+</button>
-                                <input type="file" class="audio-upload" accept="audio/*">
                             </div>
                         `;
                     } else {
                         audioCellContent = `
                             <div class="audio-cell">
-                                <span class="audio-placeholder">双击添加音频</span>
-                                <button class="add-audio-btn">+</button>
-                                <input type="file" class="audio-upload" accept="audio/*">
+                                <div class="audio-controls">
+                                    <span>暂无音频</span>
+                                </div>
                             </div>
                         `;
                     }
@@ -1430,57 +1395,13 @@
                     
                     tableBody.appendChild(row);
                     
-                    // 获取新添加行的音频单元格
-                    const audioCell = row.querySelector('.audio-cell');
-                    const audioUpload = row.querySelector('.audio-upload');
-                    const addAudioBtn = row.querySelector('.add-audio-btn');
-                    
-                    // 添加音频单元格双击事件
-                    audioCell.addEventListener('dblclick', function(e) {
-                        e.stopPropagation(); // 阻止事件冒泡
-                        audioUpload.click(); // 触发文件选择
-                    });
-                    
-                    // 添加音频按钮点击事件
-                    addAudioBtn.addEventListener('click', function(e) {
-                        e.stopPropagation(); // 阻止事件冒泡
-                        audioUpload.click(); // 触发文件选择
-                    });
-                    
-                    // 添加音频单元格单击事件
-                    audioCell.addEventListener('click', function(e) {
-                        // 防止点击添加按钮时触发播放
-                        if (e.target !== addAudioBtn && e.target !== audioUpload) {
-                            // 如果已经有音频文件，则播放
-                            if (data.audioFile) {
-                                playAudio(data.audioFile);
-                            }
-                        }
-                    });
-                    
-                    // 添加音频文件选择事件
-                    audioUpload.addEventListener('change', function(e) {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        
-                        // 检查文件类型
-                        if (!file.type.startsWith('audio/')) {
-                            alert('请选择音频文件 (MP3, WAV, OGG等)');
-                            return;
-                        }
-                        
-                        // 更新数据
-                        data.audioFile = URL.createObjectURL(file);
-                        data.audio = file.name;
-                        
-                        // 更新表格行
-                        if (index < tableData.length) {
-                            updateTableRow(index, data);
-                        }
-                        
-                        // 保存到缓存
-                        saveToCache();
-                    });
+                    // 绑定音频播放事件
+                    if (data.audioFile) {
+                        const audioControls = row.querySelector('.audio-controls');
+                        audioControls.addEventListener('click', function() {
+                            playAudio(data.audioFile);
+                        });
+                    }
                     
                     // 为英文台词单元格添加语法提示功能
                     const englishCell = row.querySelector('td:nth-child(5)');
@@ -1583,16 +1504,16 @@
                     `;
                 }
                 
-                // 固定在鼠标右上方50px处
-                syntaxTooltip.style.left = (e.pageX + 20) + 'px';
+                // 固定在鼠标右侧50px，上方50px处
+                syntaxTooltip.style.left = (e.pageX + 50) + 'px';
                 syntaxTooltip.style.top = (e.pageY - 50) + 'px';
                 syntaxTooltip.classList.add('visible');
             }
             
             // 更新语法提示框位置
             function updateSyntaxTooltipPosition(e) {
-                // 固定在鼠标右上方50px处
-                syntaxTooltip.style.left = (e.pageX + 20) + 'px';
+                // 固定在鼠标右侧50px，上方50px处
+                syntaxTooltip.style.left = (e.pageX + 50) + 'px';
                 syntaxTooltip.style.top = (e.pageY - 50) + 'px';
             }
             
@@ -1632,106 +1553,6 @@
                 return result;
             }
             
-            // 更新表格行函数
-            function updateTableRow(rowIndex, data) {
-                const rows = tableBody.querySelectorAll('tr');
-                if (rowIndex < 0 || rowIndex >= rows.length) return;
-                
-                const row = rows[rowIndex];
-                const audioCell = row.querySelector('.audio-cell');
-                
-                // 更新音频单元格
-                if (data.audioFile) {
-                    audioCell.innerHTML = `
-                        <div class="audio-controls">
-                            <span class="audio-icon"></span>
-                            <span>播放音频</span>
-                        </div>
-                        <button class="add-audio-btn">+</button>
-                        <input type="file" class="audio-upload" accept="audio/*">
-                    `;
-                } else {
-                    audioCell.innerHTML = `
-                        <span class="audio-placeholder">双击添加音频</span>
-                        <button class="add-audio-btn">+</button>
-                        <input type="file" class="audio-upload" accept="audio/*">
-                    `;
-                }
-                
-                // 重新绑定事件
-                const audioUpload = audioCell.querySelector('.audio-upload');
-                const addAudioBtn = audioCell.querySelector('.add-audio-btn');
-                
-                audioCell.addEventListener('dblclick', function(e) {
-                    e.stopPropagation();
-                    audioUpload.click();
-                });
-                
-                addAudioBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    audioUpload.click();
-                });
-                
-                audioCell.addEventListener('click', function(e) {
-                    if (e.target !== addAudioBtn && e.target !== audioUpload) {
-                        if (data.audioFile) {
-                            playAudio(data.audioFile);
-                        }
-                    }
-                });
-                
-                audioUpload.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    
-                    if (!file.type.startsWith('audio/')) {
-                        alert('请选择音频文件 (MP3, WAV, OGG等)');
-                        return;
-                    }
-                    
-                    // 更新数据
-                    data.audioFile = URL.createObjectURL(file);
-                    data.audio = file.name;
-                    
-                    // 更新单元格显示
-                    audioCell.innerHTML = `
-                        <div class="audio-controls">
-                            <span class="audio-icon"></span>
-                            <span>播放音频</span>
-                        </div>
-                        <button class="add-audio-btn">+</button>
-                        <input type="file" class="audio-upload" accept="audio/*">
-                    `;
-                    
-                    // 重新绑定事件
-                    const newAddAudioBtn = audioCell.querySelector('.add-audio-btn');
-                    const newAudioUpload = audioCell.querySelector('.audio-upload');
-                    
-                    newAddAudioBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        newAudioUpload.click();
-                    });
-                    
-                    audioCell.addEventListener('dblclick', function(e) {
-                        e.stopPropagation();
-                        newAudioUpload.click();
-                    });
-                    
-                    audioCell.addEventListener('click', function(e) {
-                        if (e.target !== newAddAudioBtn && e.target !== newAudioUpload) {
-                            playAudio(data.audioFile);
-                        }
-                    });
-                    
-                    // 保存到缓存
-                    saveToCache();
-                });
-                
-                // 重新绑定语法提示功能
-                const englishCell = row.querySelector('td:nth-child(5)');
-                setupSyntaxTooltip(englishCell, data);
-            }
-            
             // 播放音频函数
             function playAudio(audioUrl) {
                 // 停止当前正在播放的音频
@@ -1744,34 +1565,12 @@
                 currentAudio = new Audio(audioUrl);
                 currentAudio.play().catch(e => {
                     console.error('播放音频失败:', e);
+                    alert('音频文件加载失败，请检查文件路径');
                 });
             }
             
             // 显示卡片函数
             function showCard(data) {
-                let audioContent = '';
-                if (data.audioFile) {
-                    // 已加载音频 - 显示播放器
-                    audioContent = `
-                        <audio controls class="audio-player">
-                            <source src="${data.audioFile}" type="audio/mpeg">
-                            您的浏览器不支持音频元素
-                        </audio>
-                    `;
-                } else {
-                    // 未加载音频 - 显示添加按钮
-                    audioContent = `
-                        <button class="analysis-btn add-audio-btn-card" id="addAudioBtnCard">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14"></path>
-                                <path d="M5 12h14"></path>
-                            </svg>
-                            添加音频文件
-                        </button>
-                        <input type="file" id="audioUploadCard" class="audio-upload" accept="audio/*" style="display:none">
-                    `;
-                }
-                
                 // 解析语法编码
                 const syntaxInfo = parseCode(data.code);
                 let syntaxContent = '';
@@ -1825,6 +1624,14 @@
                     `;
                 }
                 
+                // 设置卡片中的音频播放器
+                if (data.audioFile && cardAudioPlayer) {
+                    cardAudioPlayer.src = data.audioFile;
+                    cardAudioPlayer.style.display = 'block';
+                } else {
+                    cardAudioPlayer.style.display = 'none';
+                }
+                
                 cardContent.innerHTML = `
                     <div class="card-sentences">
                         <div class="english-sentence">${data.english}</div>
@@ -1832,7 +1639,7 @@
                     </div>
                     
                     <div class="audio-section">
-                        ${audioContent}
+                        <audio controls class="audio-player" id="cardAudioPlayer"></audio>
                     </div>
                     
                     ${syntaxContent}
@@ -1848,39 +1655,13 @@
                     </div>
                 `;
                 
-                // 绑定卡片中添加音频按钮事件
-                const addAudioBtnCard = document.getElementById('addAudioBtnCard');
-                const audioUploadCard = document.getElementById('audioUploadCard');
-                
-                if (addAudioBtnCard && audioUploadCard) {
-                    addAudioBtnCard.addEventListener('click', function() {
-                        audioUploadCard.click();
-                    });
-                    
-                    audioUploadCard.addEventListener('change', function(e) {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        
-                        if (!file.type.startsWith('audio/')) {
-                            alert('请选择音频文件 (MP3, WAV, OGG等)');
-                            return;
-                        }
-                        
-                        // 更新当前数据
-                        data.audioFile = URL.createObjectURL(file);
-                        data.audio = file.name;
-                        
-                        // 更新表格行
-                        if (currentRowIndex !== null) {
-                            updateTableRow(currentRowIndex, data);
-                        }
-                        
-                        // 保存到缓存
-                        saveToCache();
-                        
-                        // 重新渲染卡片
-                        showCard(data);
-                    });
+                // 重新设置卡片中的音频播放器
+                const newCardAudioPlayer = document.getElementById('cardAudioPlayer');
+                if (data.audioFile && newCardAudioPlayer) {
+                    newCardAudioPlayer.src = data.audioFile;
+                    newCardAudioPlayer.style.display = 'block';
+                } else {
+                    newCardAudioPlayer.style.display = 'none';
                 }
                 
                 // 绑定词法文件按钮事件
@@ -1960,7 +1741,7 @@
                 playlistTableBody.innerHTML = `
                     <tr>
                         <td colspan="4" style="text-align: center; padding: 20px;">
-                            没有可播放的音频文件。请为台词添加音频。
+                            没有可播放的音频文件
                         </td>
                     </tr>
                 `;
@@ -2022,6 +1803,7 @@
             currentAudio = new Audio(tableData[index].audioFile);
             currentAudio.play().catch(e => {
                 console.error('播放音频失败:', e);
+                alert('音频文件加载失败，请检查文件路径');
             });
         }
         
@@ -2093,6 +1875,7 @@
                 currentAudio = new Audio(audioData.audioFile);
                 currentAudio.play().catch(e => {
                     console.error('播放音频失败:', e);
+                    alert('音频文件加载失败，请检查文件路径');
                 });
                 
                 // 监听音频结束事件，播放下一个
@@ -2197,10 +1980,9 @@
                 // 准备要缓存的数据
                 const dataToCache = {
                     tableData: tableData.map(item => {
-                        // 不缓存音频文件对象（因为无法序列化）
                         return {
                             ...item,
-                            audioFile: null,
+                            audioFile: null, // 不缓存音频文件对象
                             lexicalData: item.lexicalData || null,
                             syntacticData: item.syntacticData || null
                         };
@@ -2223,11 +2005,11 @@
                     const parsedData = JSON.parse(cachedData);
                     tableData = parsedData.tableData || [];
                     
-                    // 恢复音频文件对象（如果存在）
+                    // 恢复音频文件路径
                     tableData.forEach(item => {
-                        if (item.audio) {
-                            // 这里无法恢复原始音频文件，但可以显示文件名
-                            // 实际播放需要重新上传
+                        if (item.time) {
+                            const audioFileName = item.time.replace(/:/g, '.') + '.en.mp3';
+                            item.audioFile = `./mp3/en/${audioFileName}`;
                         }
                     });
                     
